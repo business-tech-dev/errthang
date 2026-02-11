@@ -82,8 +82,7 @@ echo "✅ Verifying .app structure..."
 ls -la errthang.app/Contents/
 echo ""
 echo "📦 errthang.app package created successfully!"
-echo "🚀 You can now run: open errthang.app"
-echo "📁 Or move it to /Applications folder"
+echo "🚀 You can now run errthang.app from Applications"
 
 rm -rf /Applications/errthang.app
 mv errthang.app /Applications/

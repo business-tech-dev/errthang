@@ -195,8 +195,29 @@ struct ContentView: View {
     }
 
     private func revealInFinder(paths: Set<String>) {
+        var unavailable: [String] = []
         for path in paths {
-            NSWorkspace.shared.selectFile(path, inFileViewerRootedAtPath: "")
+            if FileManager.default.isReadableFile(atPath: path) {
+                NSWorkspace.shared.selectFile(path, inFileViewerRootedAtPath: "")
+            } else {
+                unavailable.append(path)
+            }
+        }
+        if !unavailable.isEmpty {
+            let alert = NSAlert()
+            alert.messageText = "Path Unavailable"
+            alert.informativeText = unavailable.count == 1
+                ? "The following path is not currently reachable:\n\(unavailable[0])"
+                : "The following paths are not currently reachable:\n\(unavailable.joined(separator: "\n"))"
+            alert.alertStyle = .warning
+            alert.addButton(withTitle: "Copy Path\(unavailable.count > 1 ? "s" : "")")
+            alert.addButton(withTitle: "OK")
+            if alert.runModal() == .alertFirstButtonReturn {
+                let text = unavailable.sorted().joined(separator: "\n")
+                let pasteboard = NSPasteboard.general
+                pasteboard.clearContents()
+                pasteboard.setString(text, forType: .string)
+            }
         }
     }
 

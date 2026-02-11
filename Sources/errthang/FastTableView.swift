@@ -51,12 +51,20 @@ struct FastTableView: NSViewRepresentable {
         tableView.delegate = context.coordinator
         tableView.doubleAction = #selector(Coordinator.onDoubleClick(_:))
         tableView.target = context.coordinator
+        context.coordinator.tableView = tableView
 
         // Context Menu
         let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: "Reveal in Finder", action: #selector(Coordinator.revealInFinder), keyEquivalent: ""))
-        menu.addItem(NSMenuItem(title: "Copy Path", action: #selector(Coordinator.copyPath), keyEquivalent: ""))
-        menu.addItem(NSMenuItem(title: "Copy Name", action: #selector(Coordinator.copyName), keyEquivalent: ""))
+        let revealItem = NSMenuItem(title: "Reveal in Finder", action: #selector(Coordinator.revealInFinder), keyEquivalent: "")
+        revealItem.target = context.coordinator
+        let copyPathItem = NSMenuItem(title: "Copy Path", action: #selector(Coordinator.copyPath), keyEquivalent: "")
+        copyPathItem.target = context.coordinator
+        let copyNameItem = NSMenuItem(title: "Copy Name", action: #selector(Coordinator.copyName), keyEquivalent: "")
+        copyNameItem.target = context.coordinator
+        menu.addItem(revealItem)
+        menu.addItem(copyPathItem)
+        menu.addItem(copyNameItem)
+        menu.delegate = context.coordinator
         tableView.menu = menu
 
         // Initial Sort State
@@ -94,10 +102,11 @@ struct FastTableView: NSViewRepresentable {
     }
 
     @MainActor
-    class Coordinator: NSObject, NSTableViewDataSource, NSTableViewDelegate {
+    class Coordinator: NSObject, NSTableViewDataSource, NSTableViewDelegate, NSMenuDelegate {
         var parent: FastTableView
         var items: SearchResults = SearchResults(items: [])
         var lastVersion: UUID?
+        weak var tableView: NSTableView?
 
         init(_ parent: FastTableView) {
             self.parent = parent
@@ -205,6 +214,20 @@ struct FastTableView: NSViewRepresentable {
             DispatchQueue.main.async {
                 self.parent.sortDescriptors = descriptors
             }
+        }
+
+        // MARK: - Menu Delegate
+
+        func menuNeedsUpdate(_ menu: NSMenu) {
+            guard let tableView = tableView else { return }
+            let clickedRow = tableView.clickedRow
+            if clickedRow >= 0 && !tableView.selectedRowIndexes.contains(clickedRow) {
+                tableView.selectRowIndexes(IndexSet(integer: clickedRow), byExtendingSelection: false)
+            }
+        }
+
+        @objc func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+            return !getSelectedPaths().isEmpty
         }
 
         // MARK: - Actions

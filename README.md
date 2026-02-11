@@ -13,6 +13,10 @@ A macOS native ultra-fast file search utility with real-time indexing and minima
 ## TODO
 - **Service - The service does not currently seem to work in the background.**
 
+- **Mounts:** 
+- **After adding a mounted drive, if the drive goes offline, errthang won't "reveal in finder" again.**
+- **Copy Path/Copy Name also do not work.**
+
 ## Core Components
 - **CSearch**: C module for high-performance raw memory scanning.
 - **FileMonitor**: Tracks file system changes using `FSEvents`
